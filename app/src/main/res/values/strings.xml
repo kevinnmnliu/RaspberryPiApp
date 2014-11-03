@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">RaspberryPiApp</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="submit">Submit</string>
+    <string name="action_settings">Settings</string>
+    <string name="ip_hint">enter ip</string>
+    <string name="r_hint">Enter red value</string>
+    <string name="g_hint">Enter green value</string>
+    <string name="b_hint">Enter blue value</string>
+    <string name="light_id_hin">Enter light ID</string>
+    <string name="json_placeholder">POST request to be displayed here...</string>
+
+</resources>
