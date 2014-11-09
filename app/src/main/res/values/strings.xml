@@ -11,5 +11,8 @@
     <string name="b_hint">Enter blue value</string>
     <string name="light_id_hin">Enter light ID</string>
     <string name="json_placeholder">POST request to be displayed here...</string>
+    <string name="action_ip">IP Address</string>
+    <string name="submit_image">Submit</string>
+    <string name="Retake_Image">Retake</string>
 
 </resources>

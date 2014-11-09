@@ -17,7 +17,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.client.*;
-import org.apache.http.*;
+
 import android.os.AsyncTask;
 
 
@@ -50,7 +50,7 @@ public class MyActivity extends ActionBarActivity {
     }
 
     public void exampleMethod(View view) {
-        TextView text = (TextView) findViewById(R.id.textView);
+        TextView text = (TextView) findViewById(R.id.loadingText);
         EditText ipField = (EditText) findViewById(R.id.enter_ip);
         EditText rField = (EditText) findViewById(R.id.enter_r);
         EditText gField = (EditText) findViewById(R.id.enter_g);

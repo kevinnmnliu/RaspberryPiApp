@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="1">
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="110dp"
+        android:text="@string/submit_image"
+        android:id="@+id/button"
+        android:layout_gravity="bottom"
+        android:layout_weight="0.46"
+        android:onClick="submit" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="112dp"
+        android:text="@string/Retake_Image"
+        android:id="@+id/button2"
+        android:layout_gravity="bottom"
+        android:layout_weight="0.57"
+        android:onClick="retake"/>
+</LinearLayout>
