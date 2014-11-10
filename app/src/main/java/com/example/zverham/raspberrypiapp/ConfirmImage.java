@@ -24,6 +24,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.URI;
+import android.net.Uri;
+
+import android.widget.ImageView;
+import android.graphics.drawable.BitmapDrawable;
+import android.widget.Toast;
 
 public class ConfirmImage extends ActionBarActivity {
 
@@ -33,6 +39,12 @@ public class ConfirmImage extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.image_confirm);
+        Intent intent = getIntent();
+        ImageView jpgView = (ImageView)findViewById(R.id.image_preview);
+        String myJpgPath = intent.getStringExtra("latest_image_uri");
+        Toast.makeText(getApplicationContext(),myJpgPath, Toast.LENGTH_LONG).show();
+        BitmapDrawable d = new BitmapDrawable(getResources(), myJpgPath);
+        jpgView.setImageDrawable(d);
     }
 
 
@@ -67,7 +79,7 @@ public class ConfirmImage extends ActionBarActivity {
 
     public void submit(View v) {
         Intent intent = new Intent(this, AwaitingResponse.class);
-        startActivityForResult(intent,2);
+        startActivityForResult(intent, 2);
     }
 
 

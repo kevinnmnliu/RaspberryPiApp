@@ -15,6 +15,27 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
 
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        >
+        <FrameLayout
+            android:id="@+id/camera_preview"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            />
+
+        <Button
+            android:id="@+id/button_capture"
+            android:text="Capture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            />
+    </LinearLayout>
+
     <Button
         android:id="@+id/take_picture"
         android:layout_width="150dp"
@@ -22,9 +43,8 @@
         android:background="@drawable/round_button"
         android:gravity="center_vertical|center_horizontal"
         android:layout_gravity="center_horizontal"
+        android:visibility="visible"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="91dp"
-        android:onClick="takePicture"/>
+        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>
