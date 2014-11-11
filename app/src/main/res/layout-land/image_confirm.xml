@@ -4,45 +4,39 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:weightSum="1"
+    android:background="#000000"
     android:id="@+id/image_confirm">
 
     <FrameLayout
         android:layout_width="fill_parent"
-        android:layout_height="531dp">
+        android:layout_height="fill_parent">
         <ImageView
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:scaleType="fitStart"
+            android:layout_weight="1"
             android:id="@+id/image_preview" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="152dp"
+            android:layout_gravity="bottom">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="135dp"
+                android:text="@string/Retake_Image"
+                android:id="@+id/button2"
+                android:layout_weight="0.50"
+                android:onClick="retake"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="135dp"
+                android:text="@string/submit_image"
+                android:id="@+id/button"
+                android:layout_weight="0.50"
+                android:onClick="submit" />
+        </LinearLayout>
     </FrameLayout>
-
-
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"></LinearLayout>
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="152dp"
-        android:layout_gravity="bottom">
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="135dp"
-            android:text="@string/Retake_Image"
-            android:id="@+id/button2"
-            android:layout_weight="0.50"
-            android:onClick="retake"/>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="135dp"
-            android:text="@string/submit_image"
-            android:id="@+id/button"
-            android:layout_weight="0.50"
-            android:onClick="submit" />
-    </LinearLayout>
 
 </LinearLayout>

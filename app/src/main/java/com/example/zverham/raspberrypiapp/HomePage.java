@@ -174,37 +174,37 @@ public class HomePage extends ActionBarActivity {
         }
     }
 
-    public static void hideSoftKeyboard(Activity activity) {
-        InputMethodManager inputMethodManager = (InputMethodManager)  activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
-        inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
-    }
-
-    public void setupUI(View view) {
-
-        //Set up touch listener for non-text box views to hide keyboard.
-        if(!(view instanceof EditText) && !(view instanceof Button)) {
-
-            view.setOnTouchListener(new OnTouchListener() {
-
-                public boolean onTouch(View v, MotionEvent event) {
-                    hideSoftKeyboard(HomePage.this);
-                    return false;
-                }
-
-            });
-        }
-
-        //If a layout container, iterate over children and seed recursion.
-        if (view instanceof ViewGroup) {
-
-            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
-
-                View innerView = ((ViewGroup) view).getChildAt(i);
-
-                setupUI(innerView);
-            }
-        }
-    }
+//    public static void hideSoftKeyboard(Activity activity) {
+//        InputMethodManager inputMethodManager = (InputMethodManager)  activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+//        inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
+//    }
+//
+//    public void setupUI(View view) {
+//
+//        //Set up touch listener for non-text box views to hide keyboard.
+//        if(!(view instanceof EditText) && !(view instanceof Button)) {
+//
+//            view.setOnTouchListener(new OnTouchListener() {
+//
+//                public boolean onTouch(View v, MotionEvent event) {
+//                    hideSoftKeyboard(HomePage.this);
+//                    return false;
+//                }
+//
+//            });
+//        }
+//
+//        //If a layout container, iterate over children and seed recursion.
+//        if (view instanceof ViewGroup) {
+//
+//            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+//
+//                View innerView = ((ViewGroup) view).getChildAt(i);
+//
+//                setupUI(innerView);
+//            }
+//        }
+//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -213,7 +213,7 @@ public class HomePage extends ActionBarActivity {
         setContentView(R.layout.page_home);
         EditText ipField = (EditText) findViewById(R.id.ipField);
         ipField.setVisibility(View.GONE);
-        setupUI(findViewById(R.id.home_page));
+//        setupUI(findViewById(R.id.home_page));
 
         mCamera = getCameraInstance();
 
@@ -326,9 +326,6 @@ public class HomePage extends ActionBarActivity {
             }
         }
 
-        public void finish() {
-            mCamera.release();
-        }
     }
 
     @Override
@@ -352,10 +349,16 @@ public class HomePage extends ActionBarActivity {
 
     public void toggleIP() {
         EditText ipField = (EditText) findViewById(R.id.ipField);
+        InputMethodManager inputMethodManager = (InputMethodManager)  this.getSystemService(Activity.INPUT_METHOD_SERVICE);
         if(ipField.getVisibility() != View.GONE) {
+            inputMethodManager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), 0);
             ipField.setVisibility(View.GONE);
         } else {
+
             ipField.setVisibility(View.VISIBLE);
+            ipField.requestFocus();
+            inputMethodManager.showSoftInput(ipField, InputMethodManager.SHOW_IMPLICIT);
+
         }
     }
 
@@ -366,8 +369,11 @@ public class HomePage extends ActionBarActivity {
 //    }
 
     public void startNewIntent() {
+        EditText ipField = (EditText) findViewById(R.id.ipField);
+        String address = ipField.getText().toString();
         Intent intent = new Intent(this, ConfirmImage.class);
         intent.putExtra("latest_image_uri", latest_image_uri);
+        intent.putExtra("rpi_ip", address);
         startActivity(intent);
     }
 

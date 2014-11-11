@@ -24,6 +24,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.view.Gravity;
+
 import java.net.URI;
 import android.net.Uri;
 
@@ -31,8 +33,11 @@ import android.widget.ImageView;
 import android.graphics.drawable.BitmapDrawable;
 import android.widget.Toast;
 
+import android.graphics.*;
+
 public class ConfirmImage extends ActionBarActivity {
 
+       private Intent _intent;
 
 
     @Override
@@ -40,18 +45,24 @@ public class ConfirmImage extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.image_confirm);
         Intent intent = getIntent();
+        _intent = intent;
         ImageView jpgView = (ImageView)findViewById(R.id.image_preview);
         String myJpgPath = intent.getStringExtra("latest_image_uri");
-        Toast.makeText(getApplicationContext(),myJpgPath, Toast.LENGTH_LONG).show();
+        String ipAddress = intent.getStringExtra("rpi_ip");
+        Toast toast = Toast.makeText(getApplicationContext(),"Sending to: "+ipAddress, Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.TOP|Gravity.RIGHT, 0, 0);
+        toast.show();
         BitmapDrawable d = new BitmapDrawable(getResources(), myJpgPath);
+        d.setGravity(android.view.Gravity.FILL_HORIZONTAL);
         jpgView.setImageDrawable(d);
+
     }
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.home, menu);
+        getMenuInflater().inflate(R.menu.my, menu);
         return true;
     }
 
@@ -78,8 +89,138 @@ public class ConfirmImage extends ActionBarActivity {
     }
 
     public void submit(View v) {
+
+        String myJpgPath = _intent.getStringExtra("latest_image_uri");
+        // get the BufferedImage, using the ImageIO class
+        BitmapDrawable d = new BitmapDrawable(getResources(), myJpgPath);
+        Bitmap b = d.getBitmap();
+        int[][] rgbArray = marchThroughImage(b);
+        JSONObject lightObject = makeJSONLights(rgbArray);
+
+        String address = _intent.getStringExtra("rpi_ip");    //THIS WILL NEED TO BE CHANGED
+        address = "http://" + address + "/rpi";
+
+        JSONObject add = new JSONObject();
+        try {
+            add.put("address", address);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+
+        new Connection().execute(lightObject, add);
+
         Intent intent = new Intent(this, AwaitingResponse.class);
         startActivityForResult(intent, 2);
+    }
+
+    public static JSONObject makeLight(int[] rgb, int id) {
+        JSONObject light = new JSONObject();
+
+        try {
+            light.put("lightId", id);
+            light.put("red", rgb[0]);
+            light.put("green", rgb[1]);
+            light.put("blue", rgb[2]);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        return light;
+    }
+
+    public static JSONObject makeJSONLights(int[][] rgb){
+
+        // 3. build jsonObject
+
+        JSONObject jsonObject = new JSONObject();
+        try {
+            for (int i = 0; i < 32; i++) {
+                JSONObject light = makeLight(rgb[i], i);
+                jsonObject.accumulate("lights", light);
+            }
+            jsonObject.put("propagate", true);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        return jsonObject;
+    }
+
+    public int[] getPixelRGB(int pixel) {   //returns an int array filled with RGB values, in rgb order
+
+        int[] rgbArray;
+        rgbArray = new int[3];
+
+        int red = (pixel >> 16) & 0xff;
+        int green = (pixel >> 8) & 0xff;
+        int blue = (pixel) & 0xff;
+
+        rgbArray[0] = red;
+        rgbArray[1] = green;
+        rgbArray[2] = blue;
+
+        return rgbArray;
+    }
+
+    private int[][] marchThroughImage(Bitmap image) {  //given a bufferimage, it goes through and returns an array of all the rgb values
+        int w = image.getWidth();
+        int h = image.getHeight();
+
+        int size = w*h;
+        int [][] returnArray = new int[100*100][];
+        int counter = 0;
+        for (int i = 0; i < 100; i++) {
+            for (int j = 0; j < 100; j++) {
+                int pixel = image.getPixel(j, i);
+                int[] rgb = getPixelRGB(pixel);
+                //System.out.println("test: "+rgb[0] + " "+rgb[1]+ " "+rgb[2]);
+                returnArray[counter] = rgb;
+                counter += 1;
+            }
+        }
+        return returnArray;
+    }
+
+    // HTTP POST request
+    private static Object sendPost(JSONObject jo, String path) throws Exception {
+
+        //instantiates httpClient to make request
+        DefaultHttpClient httpClient = new DefaultHttpClient();
+
+        //url with the post data
+        HttpPost httpPost = new HttpPost(path);
+
+        //passes the results to a string builder/entity
+        StringEntity se = new StringEntity(jo.toString());
+
+        //sets the post request as the resulting string
+        httpPost.setEntity(se);
+        //sets a request header so the page receving the request
+        //will know what to do with it
+        httpPost.setHeader("Accept", "application/json");
+        httpPost.setHeader("Content-type", "application/json");
+
+        //Handles what is returned from the page
+        ResponseHandler responseHandler = new BasicResponseHandler();
+        return httpClient.execute(httpPost, responseHandler);
+    }
+
+    private class Connection extends AsyncTask<JSONObject, Void, Object> {
+
+        @Override
+        protected Object doInBackground(JSONObject... arg0) {
+            try {
+                System.out.println(arg0[1].getString("address"));
+                sendPost(arg0[0], arg0[1].getString("address"));
+            } catch(Exception e) {
+                System.out.println(e);
+            }
+
+            return null;
+        }
+
+
+
     }
 
 

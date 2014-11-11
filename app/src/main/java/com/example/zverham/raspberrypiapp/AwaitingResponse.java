@@ -24,6 +24,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.os.Handler;
 
 public class AwaitingResponse extends ActionBarActivity {
 
@@ -33,6 +34,19 @@ public class AwaitingResponse extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.response_awaiting);
+
+        Handler delayHandler= new Handler();
+        Runnable r=new Runnable()
+        {
+            @Override
+            public void run() {
+
+                returnHome();
+
+            }
+
+        };
+        delayHandler.postDelayed(r, 3000);
     }
 
 
@@ -65,7 +79,12 @@ public class AwaitingResponse extends ActionBarActivity {
         super.onDestroy();
     }
 
-    public void returnHome(View v) {
+    public void returnHome() {
+        if (getParent() == null) {
+            setResult(2);
+        } else {
+            getParent().setResult(2);
+        }
         finish();
     }
 
