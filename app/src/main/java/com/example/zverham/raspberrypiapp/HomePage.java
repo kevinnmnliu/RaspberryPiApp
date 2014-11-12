@@ -124,6 +124,30 @@ public class HomePage extends ActionBarActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        try {
+            mCamera = getCameraInstance();
+
+            mPreview = new CameraPreview(this, mCamera);
+            FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
+            preview.addView(mPreview);
+
+            // Add a listener to the Capture button
+            Button captureButton = (Button) findViewById(R.id.take_picture);
+            captureButton.setOnClickListener(
+                    new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            // get an image from the camera
+
+                            mCamera.takePicture(null, null, mPicture);
+
+                        }
+                    }
+            );
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 //        mCamera = getCameraInstance();
 //        mPreview = new CameraPreview(this, mCamera);
 //        FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
@@ -133,6 +157,15 @@ public class HomePage extends ActionBarActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        try {
+            mCamera.stopPreview();
+            mCamera.setPreviewCallback(null);
+            mPreview.getHolder().removeCallback(mPreview);
+            mCamera.release();
+            mCamera = null;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         //releaseCamera();              // release the camera immediately on pause event
         //mPreview.finish();
 
@@ -215,25 +248,6 @@ public class HomePage extends ActionBarActivity {
         ipField.setVisibility(View.GONE);
 //        setupUI(findViewById(R.id.home_page));
 
-        mCamera = getCameraInstance();
-
-        mPreview = new CameraPreview(this, mCamera);
-        FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
-        preview.addView(mPreview);
-
-        // Add a listener to the Capture button
-        Button captureButton = (Button) findViewById(R.id.take_picture);
-        captureButton.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        // get an image from the camera
-
-                        mCamera.takePicture(null, null, mPicture);
-
-                    }
-                }
-        );
     }
 
     /**
