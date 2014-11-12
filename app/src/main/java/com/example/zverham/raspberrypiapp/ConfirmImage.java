@@ -96,6 +96,11 @@ public class ConfirmImage extends ActionBarActivity {
         Bitmap b = d.getBitmap();
         int[][] rgbArray = marchThroughImage(b);
         JSONObject lightObject = makeJSONLights(rgbArray);
+        try {
+            System.out.println(lightObject.toString(2));
+        } catch (Exception e) {
+            System.out.println(e);
+        }
 
         String address = _intent.getStringExtra("rpi_ip");    //THIS WILL NEED TO BE CHANGED
         address = "http://" + address + "/rpi";
@@ -122,6 +127,7 @@ public class ConfirmImage extends ActionBarActivity {
             light.put("red", rgb[0]);
             light.put("green", rgb[1]);
             light.put("blue", rgb[2]);
+            light.put("intensity", 1);
         } catch (Exception e) {
             System.out.println(e);
         }

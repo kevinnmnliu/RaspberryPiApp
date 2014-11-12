@@ -27,6 +27,7 @@
                 android:text="@string/Retake_Image"
                 android:id="@+id/button2"
                 android:layout_weight="0.50"
+                android:textSize="40sp"
                 android:onClick="retake"/>
 
             <Button
@@ -35,6 +36,7 @@
                 android:text="@string/submit_image"
                 android:id="@+id/button"
                 android:layout_weight="0.50"
+                android:textSize="40sp"
                 android:onClick="submit" />
         </LinearLayout>
     </FrameLayout>

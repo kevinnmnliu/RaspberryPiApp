@@ -27,6 +27,7 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
+        android:background="#ffffff"
         />
 
     <Button
@@ -38,6 +39,7 @@
         android:layout_gravity="center_horizontal"
         android:visibility="visible"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="15dp"/>
 
 </RelativeLayout>
