@@ -141,8 +141,8 @@ public class ConfirmImage extends ActionBarActivity {
 
         JSONObject jsonObject = new JSONObject();
         try {
-            for (int i = 0; i < 32; i++) {
-                JSONObject light = makeLight(rgb[i], i);
+            for (int i = 0; i < 32*31; i++) {
+                JSONObject light = makeLight(rgb[i], i%32);
                 jsonObject.accumulate("lights", light);
             }
             jsonObject.put("propagate", true);
