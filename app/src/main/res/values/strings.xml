@@ -18,5 +18,6 @@
     <string name="db_placeholder">Sign in to dropbox...</string>
     <string name="db_login">login</string>
     <string name="db_logout">logout</string>
+    <string name="awaiting_1">Taking the hobbits to Isengard...</string>
 
 </resources>
