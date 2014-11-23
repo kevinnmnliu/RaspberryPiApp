@@ -3,6 +3,7 @@ package com.example.zverham.raspberrypiapp;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -40,8 +41,10 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import android.hardware.Camera.PictureCallback;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -51,8 +54,19 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import android.graphics.drawable.Drawable;
+
+import com.dropbox.sync.android.DbxAccountManager;
+import com.dropbox.sync.android.DbxFileSystem;
+import com.dropbox.sync.android.DbxFile;
+import com.dropbox.sync.android.DbxPath;
+
+
 
 public class HomePage extends ActionBarActivity {
+
+    private DbxAccountManager mDbxAcctMgr;
+    static final int REQUEST_LINK_TO_DBX = 0;
 
     private Camera mCamera;
     private CameraPreview mPreview;
@@ -61,6 +75,61 @@ public class HomePage extends ActionBarActivity {
 
     private static final int MEDIA_TYPE_IMAGE = 1;
     private static final int MEDIA_TYPE_VIDEO = 2;
+
+    private EditText ipField;
+    private LinearLayout dbSettings;
+    private Button loginButton;
+    private Button logoutButton;
+    private TextView dbPlaceholder;
+
+
+    /* DROPBOX! */
+    public void onClickLinkToDropbox(View v) {
+
+        if (mDbxAcctMgr.getLinkedAccount() == null) {
+            mDbxAcctMgr.startLink((Activity) this, REQUEST_LINK_TO_DBX);
+        } else {
+            Toast toast = Toast.makeText(getApplicationContext(),"You are already logged in!", Toast.LENGTH_LONG);
+            toast.setGravity(Gravity.TOP|Gravity.CENTER, 0, 0);
+            toast.show();
+        }
+    }
+
+    public void onClickLogoutFromDropbox(View v) {
+        if (mDbxAcctMgr.getLinkedAccount() == null) {
+            Toast toast = Toast.makeText(getApplicationContext(),"You are not logged in!", Toast.LENGTH_LONG);
+            toast.setGravity(Gravity.TOP|Gravity.CENTER, 0, 0);
+            toast.show();
+        } else {
+            mDbxAcctMgr.getLinkedAccount().unlink();
+            logoutButton.setVisibility(View.GONE);
+            loginButton.setVisibility(View.VISIBLE);
+            dbPlaceholder.setText("Sign in to dropbox...");
+            Toast toast = Toast.makeText(getApplicationContext(),"You are logged out!", Toast.LENGTH_LONG);
+            toast.setGravity(Gravity.TOP|Gravity.CENTER, 0, 0);
+            toast.show();
+        }
+    }
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_LINK_TO_DBX) {
+            if (resultCode == Activity.RESULT_OK) {
+                Toast toast = Toast.makeText(getApplicationContext(),"You are logged in!", Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.TOP|Gravity.CENTER, 0, 0);
+                toast.show();
+                System.out.println("sign in successful");
+                dbSettings.setVisibility(View.GONE);
+                dbPlaceholder.setText("Welcome!");
+                loginButton.setVisibility(View.GONE);
+                logoutButton.setVisibility(View.VISIBLE);
+            } else {
+                System.out.println("sign in unsuccessful");
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+    /* ----------- */
 
     /**
      * Create a File for saving an image or video
@@ -139,7 +208,11 @@ public class HomePage extends ActionBarActivity {
                         public void onClick(View v) {
                             // get an image from the camera
 
+
+
+                            v.setBackgroundResource(R.drawable.round_button_pressed);
                             mCamera.takePicture(null, null, mPicture);
+
 
                         }
                     }
@@ -148,6 +221,7 @@ public class HomePage extends ActionBarActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        findViewById(R.id.take_picture).setBackgroundResource(R.drawable.round_button);
 //        mCamera = getCameraInstance();
 //        mPreview = new CameraPreview(this, mCamera);
 //        FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
@@ -174,25 +248,7 @@ public class HomePage extends ActionBarActivity {
 //    @Override
 //    protected void onResume() {
 //        super.onResume();
-//        mCamera = getCameraInstance();
-//
-//        mPreview = new CameraPreview(this, mCamera);
-//        FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
-//        preview.addView(mPreview);
-//
-//        // Add a listener to the Capture button
-//        Button captureButton = (Button) findViewById(R.id.take_picture);
-//        captureButton.setOnClickListener(
-//                new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        // get an image from the camera
-//
-//                        mCamera.takePicture(null, null, mPicture);
-//                        startNewIntent();
-//                    }
-//                }
-//        );
+//        findViewById(R.id.take_picture).setBackgroundResource(R.drawable.round_button);
 //    }
 
     /** Create a file Uri for saving an image or video */
@@ -239,13 +295,29 @@ public class HomePage extends ActionBarActivity {
 //        }
 //    }
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        mDbxAcctMgr = DbxAccountManager.getInstance(getApplicationContext(), "ii0pnl9e1abqnj1", "4szs0iuyfmte9r0");
+
         setContentView(R.layout.page_home);
-        EditText ipField = (EditText) findViewById(R.id.ipField);
+        ipField = (EditText) findViewById(R.id.ipField);
+        dbSettings = (LinearLayout) findViewById(R.id.db_settings);
+        loginButton = (Button) findViewById(R.id.login_button);
+        logoutButton = (Button) findViewById(R.id.logout_button);
+        dbPlaceholder = (TextView) findViewById(R.id.db_placeholder);
+        if(mDbxAcctMgr.getLinkedAccount() == null) {
+            logoutButton.setVisibility(View.GONE);
+        } else {
+            loginButton.setVisibility(View.GONE);
+            dbPlaceholder.setText("Welcome!");
+        }
+        dbSettings.setVisibility(View.GONE);
         ipField.setVisibility(View.GONE);
+        findViewById(R.id.take_picture).setBackgroundResource(R.drawable.round_button);
 //        setupUI(findViewById(R.id.home_page));
 
     }
@@ -356,11 +428,21 @@ public class HomePage extends ActionBarActivity {
             case R.id.action_ip:
                 toggleIP();
                 return true;
+            case R.id.db_signin:
+                toggleDB();
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
+    public void toggleDB() {
+        LinearLayout dbSettings = (LinearLayout) findViewById(R.id.db_settings);
+        if(dbSettings.getVisibility() != View.GONE) {
+            dbSettings.setVisibility(View.GONE);
+        } else {
+            dbSettings.setVisibility(View.VISIBLE);
+        }
+    }
     public void toggleIP() {
         EditText ipField = (EditText) findViewById(R.id.ipField);
         InputMethodManager inputMethodManager = (InputMethodManager)  this.getSystemService(Activity.INPUT_METHOD_SERVICE);

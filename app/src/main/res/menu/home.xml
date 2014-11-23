@@ -2,6 +2,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".HomePage" >
+    <item android:id="@+id/db_signin"
+        android:title="@string/Dropbox"
+        app:showAsAction="ifRoom" />
     <item android:id="@+id/action_ip"
         android:title="@string/action_ip"
         app:showAsAction="ifRoom" />

@@ -15,7 +15,39 @@
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:layout_weight="1"
-            />
+            >
+        </FrameLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|top"
+        android:id="@+id/db_settings"
+        android:background="#f5f5f5">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/db_placeholder"
+            android:id="@+id/db_placeholder"
+            android:layout_gravity="center_horizontal" />
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/db_login"
+            android:id="@+id/login_button"
+            android:onClick="onClickLinkToDropbox"/>
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/db_logout"
+            android:id="@+id/logout_button"
+            android:onClick="onClickLogoutFromDropbox"/>
+
     </LinearLayout>
 
     <EditText
@@ -27,7 +59,7 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:background="#ffffff"
+        android:background="#f5f5f5"
         />
 
     <Button

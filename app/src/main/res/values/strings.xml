@@ -14,5 +14,9 @@
     <string name="action_ip">IP Address</string>
     <string name="submit_image">Submit</string>
     <string name="Retake_Image">Retake</string>
+    <string name="Dropbox">Dropbox</string>
+    <string name="db_placeholder">Sign in to dropbox...</string>
+    <string name="db_login">login</string>
+    <string name="db_logout">logout</string>
 
 </resources>

@@ -29,20 +29,35 @@ import android.view.Gravity;
 import java.net.URI;
 import android.net.Uri;
 
+import java.io.File;
+import java.io.ByteArrayOutputStream;
+import android.graphics.Bitmap.CompressFormat;
+import java.io.FileOutputStream;
+
 import android.widget.ImageView;
 import android.graphics.drawable.BitmapDrawable;
 import android.widget.Toast;
 
 import android.graphics.*;
 
+import com.dropbox.sync.android.DbxAccountManager;
+import com.dropbox.sync.android.DbxFile;
+import com.dropbox.sync.android.DbxFileSystem;
+import com.dropbox.sync.android.DbxPath;
+
 public class ConfirmImage extends ActionBarActivity {
 
-       private Intent _intent;
+    private DbxAccountManager mDbxAcctMgr;
+    DbxFileSystem dbxFs;
+    private Intent _intent;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mDbxAcctMgr = DbxAccountManager.getInstance(getApplicationContext(), "ii0pnl9e1abqnj1", "4szs0iuyfmte9r0");
+
         setContentView(R.layout.image_confirm);
         Intent intent = getIntent();
         _intent = intent;
@@ -90,32 +105,64 @@ public class ConfirmImage extends ActionBarActivity {
 
     public void submit(View v) {
 
-        String myJpgPath = _intent.getStringExtra("latest_image_uri");
-        // get the BufferedImage, using the ImageIO class
-        BitmapDrawable d = new BitmapDrawable(getResources(), myJpgPath);
-        Bitmap b = d.getBitmap();
-        int[][] rgbArray = marchThroughImage(b);
-        JSONObject lightObject = makeJSONLights(rgbArray);
-        try {
-            System.out.println(lightObject.toString(2));
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-
-        String address = _intent.getStringExtra("rpi_ip");    //THIS WILL NEED TO BE CHANGED
-        address = "http://" + address + "/rpi";
-
-        JSONObject add = new JSONObject();
-        try {
-            add.put("address", address);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
+//        String myJpgPath = _intent.getStringExtra("latest_image_uri");
 
 
-        new Connection().execute(lightObject, add);
+//        // get the BufferedImage, using the ImageIO class
+//        BitmapDrawable d = new BitmapDrawable(getResources(), myJpgPath);
+//        Bitmap b = d.getBitmap();
+//        int[][] rgbArray = marchThroughImage(b);
+//        JSONObject lightObject = makeJSONLights(rgbArray);
+//        try {
+//            System.out.println(lightObject.toString(2));
+//        } catch (Exception e) {
+//            System.out.println(e);
+//        }
+//
+//        String address = _intent.getStringExtra("rpi_ip");    //THIS WILL NEED TO BE CHANGED
+//        address = "http://" + address + "/rpi";
+//
+//        JSONObject add = new JSONObject();
+//        try {
+//            add.put("address", address);
+//        } catch (Exception e) {
+//            System.out.println(e);
+//        }
+//
+//
+//        /* DROPBOX */
+//        File f = new File(myJpgPath);
+////        try {
+////            f.createNewFile();
+////            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+////            b.compress(CompressFormat.JPEG, 0 /*ignored for PNG*/, bos);
+////            byte[] bitmapdata = bos.toByteArray();
+////            FileOutputStream fos = new FileOutputStream(f);
+////            fos.write(bitmapdata);
+////            fos.flush();
+////            fos.close();
+////        } catch (Exception e) {
+////            System.out.println(e);
+////        }
+//
+//        try {
+//            DbxFileSystem dbxFs = DbxFileSystem.forAccount(mDbxAcctMgr.getLinkedAccount());
+//            DbxFile testFile = dbxFs.create(new DbxPath(myJpgPath));
+//            try {
+//                testFile.writeFromExistingFile(f, false);
+//            } catch (Exception e) {
+//                System.out.println(e);
+//            }
+//        } catch (Exception e) {
+//            System.out.println(e);
+//        }
+//
+//
+//        new Connection().execute(lightObject, add);
 
         Intent intent = new Intent(this, AwaitingResponse.class);
+        intent.putExtra("myJpgPath", _intent.getStringExtra("latest_image_uri"));
+        intent.putExtra("rpi_ip", _intent.getStringExtra("rpi_ip"));
         startActivityForResult(intent, 2);
     }
 
