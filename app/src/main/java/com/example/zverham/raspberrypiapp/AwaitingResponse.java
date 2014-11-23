@@ -39,6 +39,8 @@ import com.dropbox.sync.android.DbxPath;
 
 import java.io.File;
 
+import javax.xml.transform.Result;
+
 public class AwaitingResponse extends ActionBarActivity {
 
     private DbxAccountManager mDbxAcctMgr;
@@ -70,14 +72,14 @@ public class AwaitingResponse extends ActionBarActivity {
             @Override
             public void run() {
 
-
+                returnHome();
 
             }
 
         };
         delayHandler.postDelayed(r, 3000);
 
-        returnHome();
+//        returnHome();
     }
 
 
@@ -156,11 +158,9 @@ public class AwaitingResponse extends ActionBarActivity {
                 testFile.writeFromExistingFile(f, false);
 
             } catch (Exception e) {
-                System.out.println("EXXXXXCCCEEEPPPTTTIIIOOONNN 1");
                 System.out.println(e);
             }
         } catch (Exception e) {
-            System.out.println("EXXXXXCCCEEEPPPTTTIIIOOONNN 2");
             System.out.println(e);
         }
 
@@ -173,20 +173,20 @@ public class AwaitingResponse extends ActionBarActivity {
             getParent().setResult(2);
         }
 
-        Handler delayHandler= new Handler();
-        Runnable r=new Runnable()
-        {
-            @Override
-            public void run() {
+////        Handler delayHandler= new Handler();
+////        Runnable r=new Runnable()
+////        {
+////            @Override
+////            public void run() {
+////
+////
+////
+////            }
+////
+////        };
+//        delayHandler.postDelayed(r, 3000);
 
-
-
-            }
-
-        };
-        delayHandler.postDelayed(r, 3000);
-        
-        finish();
+//        finish();
     }
 
     public static JSONObject makeLight(int[] rgb, int id) {
@@ -293,6 +293,11 @@ public class AwaitingResponse extends ActionBarActivity {
             }
 
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(Object result) {
+            finish();
         }
 
 
