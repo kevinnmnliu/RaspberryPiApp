@@ -2,6 +2,7 @@ package com.example.zverham.raspberrypiapp;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Gravity;
 import android.view.Menu;
@@ -61,6 +62,12 @@ import com.dropbox.sync.android.DbxFileSystem;
 import com.dropbox.sync.android.DbxFile;
 import com.dropbox.sync.android.DbxPath;
 
+import java.io.FilenameFilter;
+import android.support.v4.app.DialogFragment;
+import android.app.Dialog;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+
 
 
 public class HomePage extends ActionBarActivity {
@@ -81,6 +88,46 @@ public class HomePage extends ActionBarActivity {
     private Button loginButton;
     private Button logoutButton;
     private TextView dbPlaceholder;
+
+    private static String[] mFileList;
+    private static File mPath = new File(Environment.getExternalStoragePublicDirectory(
+            Environment.DIRECTORY_PICTURES), "MyCameraApp");
+    private static String mChosenFile;
+    private static final String FTYPE = ".jpg";
+    private static final int DIALOG_LOAD_FILE = 1000;
+
+    /**
+     * Create a File for saving an image or video
+     */
+    private static void loadFileList() {
+        try {
+            mPath.mkdirs();
+        }
+        catch (SecurityException e) {
+
+        }
+        if(mPath.exists()) {
+
+            FilenameFilter filter = new FilenameFilter() {
+
+                @Override
+                public boolean accept(File dir, String filename) {
+                    File sel = new File(dir, filename);
+                    return filename.contains(FTYPE) || sel.isDirectory();
+                }
+            };
+            String templist[] = mPath.list(filter);
+            mFileList = new String[templist.length+1];
+            mFileList[0] = mPath.getParent();
+            for (int x = 0; x < mFileList.length-1; x++) {
+                mFileList[x+1] = templist[x];
+            }
+        }
+        else {
+
+            mFileList = new String[0];
+        }
+    }
 
 
     /* DROPBOX! */
@@ -427,12 +474,24 @@ public class HomePage extends ActionBarActivity {
         switch (item.getItemId()) {
             case R.id.action_ip:
                 toggleIP();
-                return true;
+                break;
             case R.id.db_signin:
                 toggleDB();
+                break;
+            case R.id.file_system:
+                toggleFileSystem();
+                break;
             default:
                 return super.onOptionsItemSelected(item);
         }
+        return true;
+    }
+
+    public void toggleFileSystem() {
+        loadFileList();
+        DialogFragment newFragment = new FilePickerDialogFragment();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        newFragment.show(fragmentManager,"picker");
     }
 
     public void toggleDB() {
@@ -471,6 +530,48 @@ public class HomePage extends ActionBarActivity {
         intent.putExtra("latest_image_uri", latest_image_uri);
         intent.putExtra("rpi_ip", address);
         startActivity(intent);
+    }
+
+    public static class FilePickerDialogFragment extends DialogFragment {
+
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            Dialog dialog = null;
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle("Choose a file.");
+            if (mFileList == null) {
+                dialog = builder.create();
+                Toast.makeText(getActivity().getApplicationContext(),"My list is null",Toast.LENGTH_LONG);
+
+                return dialog;
+
+            }
+            builder.setItems(mFileList, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    String chosenFile = mFileList[which];
+                    if(new File(mPath,chosenFile).isDirectory() || which==0) {
+                        if(which==0) {
+                            mPath = new File(chosenFile);
+                        } else {
+                            mPath = new File(mPath,chosenFile);
+                        }
+                        loadFileList();
+                        DialogFragment newFragment = new FilePickerDialogFragment();
+                        FragmentManager fragmentManager = (getActivity()).getSupportFragmentManager();
+                        newFragment.show(fragmentManager,"picker");
+                    } else {
+                        latest_image_uri = new File(mPath,chosenFile).toString();
+                        ((HomePage)getActivity()).startNewIntent();
+                    }
+                }
+            });
+
+
+            dialog = builder.show();
+            return dialog;
+        }
+
     }
 
 }

@@ -4,7 +4,7 @@
     android:orientation="horizontal" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/response_awaiting"
-    android:background="@+drawable/graybackground">
+    android:background="@drawable/sauron">
 
     <TextView
         android:layout_width="wrap_content"
@@ -17,8 +17,8 @@
         android:layout_marginBottom="116dp" />
 
     <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="900px"
+        android:layout_height="900px"
         android:id="@+id/spin_image"
         android:background="@drawable/spinnerimage"
         android:layout_gravity="center"
