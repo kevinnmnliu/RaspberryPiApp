@@ -152,14 +152,18 @@ public class AwaitingResponse extends ActionBarActivity {
 //        }
 
         try {
-            DbxFileSystem dbxFs = DbxFileSystem.forAccount(mDbxAcctMgr.getLinkedAccount());
-            DbxFile testFile = dbxFs.create(new DbxPath(myJpgPath));
-            try {
-                testFile.writeFromExistingFile(f, false);
+            DbxPath possFile = new DbxPath(myJpgPath);
+          if (!dbxFs.isFile(possFile)) {
+                DbxFileSystem dbxFs = DbxFileSystem.forAccount(mDbxAcctMgr.getLinkedAccount());
 
-            } catch (Exception e) {
-                System.out.println(e);
-            }
+                DbxFile testFile = dbxFs.create(new DbxPath(myJpgPath));
+                try {
+                  testFile.writeFromExistingFile(f, false);
+
+                } catch (Exception e) {
+                  System.out.println(e);
+                }
+          }
         } catch (Exception e) {
             System.out.println(e);
         }
