@@ -147,12 +147,15 @@ public class ConfirmImage extends ActionBarActivity {
 //
 //        try {
 //            DbxFileSystem dbxFs = DbxFileSystem.forAccount(mDbxAcctMgr.getLinkedAccount());
-//            DbxFile testFile = dbxFs.create(new DbxPath(myJpgPath));
-//            try {
-//                testFile.writeFromExistingFile(f, false);
-//            } catch (Exception e) {
-//                System.out.println(e);
-//            }
+//              DbxPath possFile = new DbxPath(myJpgPath);
+//              if (!dbxFs.isFile(possFile)) {
+    //            DbxFile testFile = dbxFs.create(new DbxPath(myJpgPath));
+    //            try {
+    //                testFile.writeFromExistingFile(f, false);
+    //            } catch (Exception e) {
+    //                System.out.println(e);
+    //            }
+//              }
 //        } catch (Exception e) {
 //            System.out.println(e);
 //        }
