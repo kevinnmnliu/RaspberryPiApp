@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.ByteArrayOutputStream;
 import android.graphics.Bitmap.CompressFormat;
 import java.io.FileOutputStream;
+import java.util.Arrays;
 
 import android.widget.ImageView;
 import android.graphics.drawable.BitmapDrawable;
@@ -237,19 +238,36 @@ public class ConfirmImage extends ActionBarActivity {
     private int[][] marchThroughImage(Bitmap image) {  //given a bufferimage, it goes through and returns an array of all the rgb values
         int w = image.getWidth();
         int h = image.getHeight();
-
+        int max = 0;
+        int limit = 1000;
+        if (w < h) {
+            max = w;
+        } else {
+            max = h;
+        }
         int size = w*h;
-        int [][] returnArray = new int[100*100][];
+        int[] prevPixel = new int[3];
+        int [][] returnArray = new int[limit][];
         int counter = 0;
-        for (int i = 0; i < 100; i++) {
-            for (int j = 0; j < 100; j++) {
+        int samePixel = 0;
+        int i = 0;
+        while ((counter < limit) && (i < max)) { 
                 int pixel = image.getPixel(j, i);
                 int[] rgb = getPixelRGB(pixel);
+                if (Arrays.equals(rgb, prevPixel)) {
+                    samePixel += 1;
+                } else {
+                    prevPixel = rgb;
+                    samePixel = 0;
+                }
                 //System.out.println("test: "+rgb[0] + " "+rgb[1]+ " "+rgb[2]);
-                returnArray[counter] = rgb;
-                counter += 1;
+                if (samePixel < 6) {
+                    returnArray[counter] = rgb;
+                    counter += 1;
+                }
+                i += 1;
             }
-        }
+        
         return returnArray;
     }
 
