@@ -48,6 +48,7 @@ public class AwaitingResponse extends ActionBarActivity {
     private Intent _intent;
     private String myJpgPath;
     private String ipAddress;
+    private boolean is_dropbox;
 
 
     @Override
@@ -61,6 +62,7 @@ public class AwaitingResponse extends ActionBarActivity {
         //System.out.println("!!!!!!!!!!!!!"+myJpgPath+"!!!!!!!!!!!!!!!!!!!!!!");
 
         ipAddress = intent.getStringExtra("rpi_ip");
+        is_dropbox = intent.getBooleanExtra("is_dropbox", false);
 
         ImageView t = (ImageView)findViewById(R.id.spin_image);
         RotateAnimation ranim = (RotateAnimation)AnimationUtils.loadAnimation(this, R.anim.myanim);
@@ -116,6 +118,16 @@ public class AwaitingResponse extends ActionBarActivity {
 
         // get the BufferedImage, using the ImageIO class
         BitmapDrawable d = new BitmapDrawable(getResources(), myJpgPath);
+        if(is_dropbox) {
+            try {
+                dbxFs = DbxFileSystem.forAccount(mDbxAcctMgr.getLinkedAccount());
+                DbxFile file = dbxFs.open(new DbxPath(myJpgPath));
+                d = new BitmapDrawable(getResources(), file.getReadStream());
+                file.close();
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
         Bitmap b = d.getBitmap();
         int[][] rgbArray = marchThroughImage(b);
         JSONObject lightObject = makeJSONLights(rgbArray);
@@ -153,13 +165,16 @@ public class AwaitingResponse extends ActionBarActivity {
 
         try {
             DbxFileSystem dbxFs = DbxFileSystem.forAccount(mDbxAcctMgr.getLinkedAccount());
-            DbxFile testFile = dbxFs.create(new DbxPath(myJpgPath));
-            try {
-                testFile.writeFromExistingFile(f, false);
+//            if(!dbxFs.exists(new DbxPath(myJpgPath))) {
+                DbxFile testFile = dbxFs.create(new DbxPath(myJpgPath));
+                try {
+                    testFile.writeFromExistingFile(f, false);
+                    testFile.close();
 
-            } catch (Exception e) {
-                System.out.println(e);
-            }
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+//            }
         } catch (Exception e) {
             System.out.println(e);
         }

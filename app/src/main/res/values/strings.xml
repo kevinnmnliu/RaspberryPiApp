@@ -20,5 +20,6 @@
     <string name="db_logout">logout</string>
     <string name="awaiting_1">Taking the hobbits to Isengard...</string>
     <string name="file_system">Filesystem</string>
+    <string name="sign_up">Signup</string>
 
 </resources>

@@ -50,6 +50,7 @@ public class ConfirmImage extends ActionBarActivity {
     private DbxAccountManager mDbxAcctMgr;
     DbxFileSystem dbxFs;
     private Intent _intent;
+    private boolean is_dropbox = false;
 
 
     @Override
@@ -57,19 +58,36 @@ public class ConfirmImage extends ActionBarActivity {
         super.onCreate(savedInstanceState);
 
         mDbxAcctMgr = DbxAccountManager.getInstance(getApplicationContext(), "ii0pnl9e1abqnj1", "4szs0iuyfmte9r0");
-
         setContentView(R.layout.image_confirm);
         Intent intent = getIntent();
         _intent = intent;
         ImageView jpgView = (ImageView)findViewById(R.id.image_preview);
         String myJpgPath = intent.getStringExtra("latest_image_uri");
         String ipAddress = intent.getStringExtra("rpi_ip");
+        is_dropbox = intent.getBooleanExtra("is_dropbox", false);
         Toast toast = Toast.makeText(getApplicationContext(),"Sending to: "+ipAddress, Toast.LENGTH_LONG);
         toast.setGravity(Gravity.TOP|Gravity.RIGHT, 0, 0);
         toast.show();
-        BitmapDrawable d = new BitmapDrawable(getResources(), myJpgPath);
-        d.setGravity(android.view.Gravity.FILL_HORIZONTAL);
-        jpgView.setImageDrawable(d);
+
+        if(is_dropbox) {
+            try {
+                dbxFs = DbxFileSystem.forAccount(mDbxAcctMgr.getLinkedAccount());
+                DbxFile file = dbxFs.open(new DbxPath(intent.getStringExtra("latest_image_uri")));
+                BitmapDrawable d = new BitmapDrawable(getResources(), file.getReadStream());
+                d.setGravity(android.view.Gravity.FILL_HORIZONTAL);
+                jpgView.setImageDrawable(d);
+                file.close();
+            } catch(Exception e){
+                    System.out.println("exception!");
+                    System.out.println(e);
+            }
+
+        } else {
+
+                BitmapDrawable d = new BitmapDrawable(getResources(), myJpgPath);
+                d.setGravity(android.view.Gravity.FILL_HORIZONTAL);
+                jpgView.setImageDrawable(d);
+        }
 
     }
 
@@ -163,6 +181,7 @@ public class ConfirmImage extends ActionBarActivity {
         Intent intent = new Intent(this, AwaitingResponse.class);
         intent.putExtra("myJpgPath", _intent.getStringExtra("latest_image_uri"));
         intent.putExtra("rpi_ip", _intent.getStringExtra("rpi_ip"));
+        intent.putExtra("is_dropbox", _intent.getBooleanExtra("is_dropbox", false));
         startActivityForResult(intent, 2);
     }
 

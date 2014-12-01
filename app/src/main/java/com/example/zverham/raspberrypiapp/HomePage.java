@@ -1,84 +1,67 @@
 package com.example.zverham.raspberrypiapp;
 
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
-import android.support.v7.app.ActionBarActivity;
-import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
 import android.app.Activity;
-import android.view.inputmethod.InputMethodManager;
-import android.view.View.OnTouchListener;
-import android.view.MotionEvent;
-import android.view.ViewGroup;
-import android.content.Intent;
-
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
+import android.hardware.Camera.PictureCallback;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-
-import android.hardware.Camera.PictureCallback;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URI;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import android.graphics.drawable.Drawable;
-
 import com.dropbox.sync.android.DbxAccountManager;
+import com.dropbox.sync.android.DbxFileInfo;
 import com.dropbox.sync.android.DbxFileSystem;
-import com.dropbox.sync.android.DbxFile;
 import com.dropbox.sync.android.DbxPath;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
-import android.support.v4.app.DialogFragment;
-import android.app.Dialog;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
+import android.widget.*;
 
 
 public class HomePage extends ActionBarActivity {
 
-    private DbxAccountManager mDbxAcctMgr;
+    private DbxFileSystem dbxFs;
+    private static DbxAccountManager mDbxAcctMgr;
     static final int REQUEST_LINK_TO_DBX = 0;
 
     private Camera mCamera;
     private CameraPreview mPreview;
 
     private static String latest_image_uri;
+    private static boolean is_dropbox = false;
 
     private static final int MEDIA_TYPE_IMAGE = 1;
     private static final int MEDIA_TYPE_VIDEO = 2;
@@ -92,9 +75,15 @@ public class HomePage extends ActionBarActivity {
     private static String[] mFileList;
     private static File mPath = new File(Environment.getExternalStoragePublicDirectory(
             Environment.DIRECTORY_PICTURES), "MyCameraApp");
+
+    private static ArrayList<String> dFileArray;
+    private static String[] dFileList;
+
     private static String mChosenFile;
     private static final String FTYPE = ".jpg";
     private static final int DIALOG_LOAD_FILE = 1000;
+
+    private static final String sync_path = "/Dropbox/";
 
     /**
      * Create a File for saving an image or video
@@ -102,11 +91,10 @@ public class HomePage extends ActionBarActivity {
     private static void loadFileList() {
         try {
             mPath.mkdirs();
-        }
-        catch (SecurityException e) {
+        } catch (SecurityException e) {
 
         }
-        if(mPath.exists()) {
+        if (mPath.exists()) {
 
             FilenameFilter filter = new FilenameFilter() {
 
@@ -117,13 +105,12 @@ public class HomePage extends ActionBarActivity {
                 }
             };
             String templist[] = mPath.list(filter);
-            mFileList = new String[templist.length+1];
+            mFileList = new String[templist.length + 1];
             mFileList[0] = mPath.getParent();
-            for (int x = 0; x < mFileList.length-1; x++) {
-                mFileList[x+1] = templist[x];
+            for (int x = 0; x < mFileList.length - 1; x++) {
+                mFileList[x + 1] = templist[x];
             }
-        }
-        else {
+        } else {
 
             mFileList = new String[0];
         }
@@ -136,39 +123,112 @@ public class HomePage extends ActionBarActivity {
         if (mDbxAcctMgr.getLinkedAccount() == null) {
             mDbxAcctMgr.startLink((Activity) this, REQUEST_LINK_TO_DBX);
         } else {
-            Toast toast = Toast.makeText(getApplicationContext(),"You are already logged in!", Toast.LENGTH_LONG);
-            toast.setGravity(Gravity.TOP|Gravity.CENTER, 0, 0);
+            Toast toast = Toast.makeText(getApplicationContext(), "You are already logged in!", Toast.LENGTH_LONG);
+            toast.setGravity(Gravity.TOP | Gravity.CENTER, 0, 0);
             toast.show();
         }
     }
 
     public void onClickLogoutFromDropbox(View v) {
         if (mDbxAcctMgr.getLinkedAccount() == null) {
-            Toast toast = Toast.makeText(getApplicationContext(),"You are not logged in!", Toast.LENGTH_LONG);
-            toast.setGravity(Gravity.TOP|Gravity.CENTER, 0, 0);
+            Toast toast = Toast.makeText(getApplicationContext(), "You are not logged in!", Toast.LENGTH_LONG);
+            toast.setGravity(Gravity.TOP | Gravity.CENTER, 0, 0);
             toast.show();
         } else {
             mDbxAcctMgr.getLinkedAccount().unlink();
             logoutButton.setVisibility(View.GONE);
             loginButton.setVisibility(View.VISIBLE);
             dbPlaceholder.setText("Sign in to dropbox...");
-            Toast toast = Toast.makeText(getApplicationContext(),"You are logged out!", Toast.LENGTH_LONG);
-            toast.setGravity(Gravity.TOP|Gravity.CENTER, 0, 0);
+            Toast toast = Toast.makeText(getApplicationContext(), "You are logged out!", Toast.LENGTH_LONG);
+            toast.setGravity(Gravity.TOP | Gravity.CENTER, 0, 0);
             toast.show();
         }
     }
+
+    public void getDropBoxFiles(DbxPath path) {
+        System.out.println("getting dropbox files...");
+        try {
+
+            if (dbxFs != null) {
+                List<DbxFileInfo> currentList = dbxFs.listFolder(path);
+                for (int i = 0; i < currentList.size(); i++) {
+                    DbxFileInfo currentInfo = currentList.get(i);
+                    if (currentInfo.isFolder) {
+                        getDropBoxFiles(currentInfo.path);
+                    } else {
+//                        Toast toast = Toast.makeText(getApplicationContext(), currentInfo.path.toString(), Toast.LENGTH_LONG);
+//                        toast.setGravity(Gravity.TOP|Gravity.CENTER, 0, 0);
+//                        toast.show();
+                        dFileArray.add(currentInfo.path.toString());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        dFileList = new String[dFileArray.size()];
+        for (int i = 0; i < dFileArray.size(); i++) {
+            dFileList[i] = dFileArray.get(i);
+        }
+    }
+
+    public void listenForChangesOnPath(DbxPath path) {
+        Toast toast = Toast.makeText(getApplicationContext(), "IN METHOD!", Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.TOP | Gravity.CENTER, 0, 0);
+        toast.show();
+        try {
+            dbxFs = DbxFileSystem.forAccount(mDbxAcctMgr.getLinkedAccount());
+//            dbxFs.syncNowAndWait();
+//            System.out.println("!!!!!!!!!!!!!!!!");
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        dbxFs.addPathListener(new DbxFileSystem.PathListener() {
+            @Override
+            public void onPathChange(DbxFileSystem fs, DbxPath registeredPath, Mode registeredMode) {
+                Toast toast = Toast.makeText(getApplicationContext(), "CREATED!", Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.TOP | Gravity.CENTER, 0, 0);
+                toast.show();
+                System.out.println("IN ON PATH CHANGE!!!!!");
+                try {
+                    FileInputStream fis = fs.open(registeredPath).getReadStream();
+                    File f = getOutputMediaFile(MEDIA_TYPE_IMAGE);
+                    byte[] b = new byte[(int) f.length()];
+                    FileOutputStream fos = new FileOutputStream(f);
+                    fis.read(b);
+                    fos.write(b);
+                    fos.close();
+                    fis.close();
+                    System.out.println(registeredPath.toString());
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+
+            }
+        }, path, DbxFileSystem.PathListener.Mode.PATH_OR_DESCENDANT);
+
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_LINK_TO_DBX) {
             if (resultCode == Activity.RESULT_OK) {
-                Toast toast = Toast.makeText(getApplicationContext(),"You are logged in!", Toast.LENGTH_LONG);
-                toast.setGravity(Gravity.TOP|Gravity.CENTER, 0, 0);
+                Toast toast = Toast.makeText(getApplicationContext(), "You are logged in!", Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.TOP | Gravity.CENTER, 0, 0);
                 toast.show();
                 System.out.println("sign in successful");
                 dbSettings.setVisibility(View.GONE);
                 dbPlaceholder.setText("Welcome!");
                 loginButton.setVisibility(View.GONE);
                 logoutButton.setVisibility(View.VISIBLE);
+//                listenForChangesOnPath(new DbxPath(sync_path));
+                try {
+                    dbxFs = DbxFileSystem.forAccount(mDbxAcctMgr.getLinkedAccount());
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+
             } else {
                 System.out.println("sign in unsuccessful");
             }
@@ -233,6 +293,7 @@ public class HomePage extends ActionBarActivity {
             } catch (FileNotFoundException e) {
             } catch (IOException e) {
             }
+            is_dropbox = false;
             startNewIntent();
         }
     };
@@ -254,7 +315,6 @@ public class HomePage extends ActionBarActivity {
                         @Override
                         public void onClick(View v) {
                             // get an image from the camera
-
 
 
                             v.setBackgroundResource(R.drawable.round_button_pressed);
@@ -298,13 +358,15 @@ public class HomePage extends ActionBarActivity {
 //        findViewById(R.id.take_picture).setBackgroundResource(R.drawable.round_button);
 //    }
 
-    /** Create a file Uri for saving an image or video */
-    private static Uri getOutputMediaFileUri(int type){
+    /**
+     * Create a file Uri for saving an image or video
+     */
+    private static Uri getOutputMediaFileUri(int type) {
         return Uri.fromFile(getOutputMediaFile(type));
     }
 
-    private void releaseCamera(){
-        if (mCamera != null){
+    private void releaseCamera() {
+        if (mCamera != null) {
             mCamera.release();        // release the camera for other applications
             mCamera = null;
         }
@@ -343,7 +405,6 @@ public class HomePage extends ActionBarActivity {
 //    }
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -356,7 +417,7 @@ public class HomePage extends ActionBarActivity {
         loginButton = (Button) findViewById(R.id.login_button);
         logoutButton = (Button) findViewById(R.id.logout_button);
         dbPlaceholder = (TextView) findViewById(R.id.db_placeholder);
-        if(mDbxAcctMgr.getLinkedAccount() == null) {
+        if (mDbxAcctMgr.getLinkedAccount() == null) {
             logoutButton.setVisibility(View.GONE);
         } else {
             loginButton.setVisibility(View.GONE);
@@ -365,6 +426,10 @@ public class HomePage extends ActionBarActivity {
         dbSettings.setVisibility(View.GONE);
         ipField.setVisibility(View.GONE);
         findViewById(R.id.take_picture).setBackgroundResource(R.drawable.round_button);
+        if (mDbxAcctMgr.hasLinkedAccount()) {
+            listenForChangesOnPath(new DbxPath(sync_path));
+        }
+        dFileArray = new ArrayList<String>();
 //        setupUI(findViewById(R.id.home_page));
 
     }
@@ -416,7 +481,7 @@ public class HomePage extends ActionBarActivity {
 
         public void surfaceCreated(SurfaceHolder holder) {
             // The Surface has been created, now tell the camera where to draw the preview.
-            if(mCamera == null) {
+            if (mCamera == null) {
                 mCamera = Camera.open();
             }
             try {
@@ -481,6 +546,18 @@ public class HomePage extends ActionBarActivity {
             case R.id.file_system:
                 toggleFileSystem();
                 break;
+            case R.id.db_files:
+                try {
+                    dbxFs = DbxFileSystem.forAccount(mDbxAcctMgr.getLinkedAccount());
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+                dFileArray.clear();
+                getDropBoxFiles(DbxPath.ROOT);
+                DialogFragment newFragment = new DropBoxDialogFragment();
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                newFragment.show(fragmentManager, "picker");
+                break;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -491,21 +568,22 @@ public class HomePage extends ActionBarActivity {
         loadFileList();
         DialogFragment newFragment = new FilePickerDialogFragment();
         FragmentManager fragmentManager = getSupportFragmentManager();
-        newFragment.show(fragmentManager,"picker");
+        newFragment.show(fragmentManager, "picker");
     }
 
     public void toggleDB() {
         LinearLayout dbSettings = (LinearLayout) findViewById(R.id.db_settings);
-        if(dbSettings.getVisibility() != View.GONE) {
+        if (dbSettings.getVisibility() != View.GONE) {
             dbSettings.setVisibility(View.GONE);
         } else {
             dbSettings.setVisibility(View.VISIBLE);
         }
     }
+
     public void toggleIP() {
         EditText ipField = (EditText) findViewById(R.id.ipField);
-        InputMethodManager inputMethodManager = (InputMethodManager)  this.getSystemService(Activity.INPUT_METHOD_SERVICE);
-        if(ipField.getVisibility() != View.GONE) {
+        InputMethodManager inputMethodManager = (InputMethodManager) this.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        if (ipField.getVisibility() != View.GONE) {
             inputMethodManager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), 0);
             ipField.setVisibility(View.GONE);
         } else {
@@ -517,18 +595,13 @@ public class HomePage extends ActionBarActivity {
         }
     }
 
-//    public void takePicture(View v) {
-//        System.out.println("in view");
-//        Intent intent = new Intent(this, ConfirmImage.class);
-//        startActivity(intent);
-//    }
-
     public void startNewIntent() {
         EditText ipField = (EditText) findViewById(R.id.ipField);
         String address = ipField.getText().toString();
         Intent intent = new Intent(this, ConfirmImage.class);
         intent.putExtra("latest_image_uri", latest_image_uri);
         intent.putExtra("rpi_ip", address);
+        intent.putExtra("is_dropbox", is_dropbox);
         startActivity(intent);
     }
 
@@ -539,33 +612,41 @@ public class HomePage extends ActionBarActivity {
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             Dialog dialog = null;
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setTitle("Choose a file.");
+            builder.setTitle("Choose a file");
             if (mFileList == null) {
                 dialog = builder.create();
-                Toast.makeText(getActivity().getApplicationContext(),"My list is null",Toast.LENGTH_LONG);
+                Toast.makeText(getActivity().getApplicationContext(), "My list is null", Toast.LENGTH_LONG);
 
                 return dialog;
 
             }
-            builder.setItems(mFileList, new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int which) {
+            GridView gridView = new GridView(getActivity().getApplicationContext());
+            gridView.setAdapter(new ImageAdapter(getActivity(), mFileList, mPath, false));
+            gridView.setNumColumns(5);
+            gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int which, long id) {
                     String chosenFile = mFileList[which];
-                    if(new File(mPath,chosenFile).isDirectory() || which==0) {
-                        if(which==0) {
+                    if (new File(mPath, chosenFile).isDirectory() || which == 0) {
+                        if (which == 0) {
                             mPath = new File(chosenFile);
                         } else {
-                            mPath = new File(mPath,chosenFile);
+                            mPath = new File(mPath, chosenFile);
                         }
                         loadFileList();
+
                         DialogFragment newFragment = new FilePickerDialogFragment();
                         FragmentManager fragmentManager = (getActivity()).getSupportFragmentManager();
-                        newFragment.show(fragmentManager,"picker");
+                        newFragment.show(fragmentManager, "picker");
                     } else {
-                        latest_image_uri = new File(mPath,chosenFile).toString();
-                        ((HomePage)getActivity()).startNewIntent();
+                        latest_image_uri = new File(mPath, chosenFile).toString();
+                        is_dropbox = false;
+                        ((HomePage) getActivity()).startNewIntent();
                     }
+                    dismiss();
                 }
             });
+            builder.setView(gridView);
 
 
             dialog = builder.show();
@@ -574,4 +655,42 @@ public class HomePage extends ActionBarActivity {
 
     }
 
+    public static class DropBoxDialogFragment extends DialogFragment {
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            Dialog dialog = null;
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle("Choose a file from Dropbox.");
+            if (dFileList == null) {
+                dialog = builder.create();
+                Toast.makeText(getActivity().getApplicationContext(), "My list is null", Toast.LENGTH_LONG);
+
+                return dialog;
+
+            }
+            GridView gridView = new GridView(getActivity().getApplicationContext());
+            gridView.setAdapter(new ImageAdapter(getActivity(), dFileList, mPath, true));
+            gridView.setNumColumns(5);
+            gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                public void onItemClick(AdapterView<?> parent, View view, int which, long id) {
+
+
+                    latest_image_uri = dFileList[which];
+                    is_dropbox = true;
+                    ((HomePage) getActivity()).startNewIntent();
+
+
+                    dismiss();
+                }
+
+            });
+
+            builder.setView(gridView);
+            dialog = builder.show();
+            return dialog;
+        }
+
+    }
 }
+
